@@ -1,0 +1,40 @@
+language: generic                                               # Add this line to avoid errors like - “rakefile not found” 
+
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ravilkhalilov/react-test -f ./client/Dockerfile.dev  ./client
+
+script: 
+  - docker run -e CI=true ravilkhalilov/react-test npm test     # https://facebook.github.io/create-react-app/docs/running-tests#linux-macos-bash
+
+after_success: 
+  - docker build -t ravilkhalilov/multi-client ./client         # It will use by default Dockerfile to create image. Docker by default is looking for Dockerfile, not Dockerfile.dev
+  - docker build -t ravilkhalilov/multi-nginx ./nginx           # It will use by default Dockerfile to create image. Docker by default is looking for Dockerfile, not Dockerfile.dev 
+  - docker build -t ravilkhalilov/multi-server ./server         # It will use by default Dockerfile to create image. Docker by default is looking for Dockerfile, not Dockerfile.dev 
+  - docker build -t ravilkhalilov/multi-worker ./worker         # It will use by default Dockerfile to create image. Docker by default is looking for Dockerfile, not Dockerfile.dev
+
+# Login to Docker Hub with our credentials specified in repository setting in TravisCI
+# TravisCI will read both variables specified for this repository
+  - echo "$docker_password" | docker login -u "$docker_id" --password-stdin
+
+# Take those images and push them to docker hub
+  - docker push ravilkhalilov/multi-client
+  - docker push ravilkhalilov/multi-nginx
+  - docker push ravilkhalilov/multi-server
+  - docker push ravilkhalilov/multi-worker
+
+# If you want to automatically deploy docker images in AWS ElasticBeansTalk uncomment following sections:
+# deploy:
+#  provider: elasticbeanstalk                              # Platform where our App will be deployed
+#  region: 'us-east-1'                                     # Set target region where our Platform located
+#  app: 'multi-docker'                                     # AWS BeansTalk App name
+#  env: 'MultiDocker-env'                                  # AWS BeansTalk App Enironment name
+#  bucket_name: 'elasticbeanstalk-us-east-1-289483554334'  # Bucket must be in the same Region as AWS BeansTalk
+#  bucket_path: 'multi-docker'                             # Set folder name inside of S3 bucket, that will keep App files. You can set any name as you wish
+#  on:
+#    branch: main                                          # Instruct AWS BeansTalk to only deploy updates, only when changes commited in the main branch of git repo
+#  access_key_id: $AWS_ACCESS_KEY                          # This env variable and it's value has been set in the repository of the TravisCI. Copy env name from TravisCI to avoid misspeling error
+#  secret_access_key: $AWS_SECRET_KEY                      # This env variable and it's value has been set in the repository of the TravisCI. Copy env name from TravisCI to avoid misspeling error 
