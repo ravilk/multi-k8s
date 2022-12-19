@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+# UPDATE API
+kind: Ingress                                               # Object type 
+metadata:             
+  name: ingress-service                                     # Our object name
+  annotations:                                              # A higher level of configuraton over Ingress Service
+    kubernetes.io/ingress.class: 'nginx'                    # Here we say to k8s that we want to create ingress controller based on NGINX project
+    nginx.ingress.kubernetes.io/use-regex: 'true'           # Use regular expressions
+    # ADD ANNOTATION
+    nginx.ingress.kubernetes.io/rewrite-target: /$1         # Rewrite target URL path afte path is matched with the requested path in URL
+    # UPDATE ANNOTATION
+spec:
+  rules:                                                    # Routing rules
+    - http:                                                 # Ingress service should operate on http
+        paths:                                              
+          - path: /?(.*)                                    # Every request that come to '/?(.*)' path should be redirected to the specific backend service
+            # UPDATE PATH
+            pathType: Prefix
+            # ADD PATHTYPE
+            backend:
+              service:                                      # Type of the backend service that will will accept traffic. In our case it's k8s Service
+                # UPDATE SERVICE FIELDS
+                name: client-cluster-ip-service             # Name of the target k8s Service that will redirect traffic to the set of POD's
+                port:
+                  number: 3000                              # Service listening port 
+          - path: /api/?(.*)                                # Every request that come to '/api/*' path should be redirected to the specific backend service
+            # UPDATE PATH
+            pathType: Prefix
+            # ADD PATHTYPE
+            backend:
+              service:                                      # Type of the backend service that will will accept traffic. In our case it's k8s Service
+                # UPDATE SERVICE FIELDS
+                name: server-cluster-ip-service             # Name of the target k8s Service that will redirect traffic to the set of POD's
+                port:
+                  number: 5000                              # Service listening port

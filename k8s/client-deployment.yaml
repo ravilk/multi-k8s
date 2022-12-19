@@ -1,0 +1,23 @@
+apiVersion: apps/v1                                   # API Version
+kind: Deployment                                      # k8s object type that will be deployed by this file
+metadata:
+  name: client-deployment                             # This name will be used as deployment name, and the name of the pod's that will be contorolled by this deployment
+spec:
+  replicas: 3                                         # Number of replicas that deployment should keep up
+  selector:
+    matchLabels:
+      component: web                                  # This label should match with the label in of 'template' section. k8s will controll all POD's that has this label
+  template:
+    metadata:
+      labels:                                         # Deployment will controll any POD's that has follwing label. This label should match with the label in the 'selector' section.
+        component: web                                # Format is <selector>:<label>. You can set - env:prod, env:dev, db:prod, db:dev, app:frontend, app:backend, component:web, component:db and etc ...
+    spec:                                             # Following configuration if related to container only
+      containers: 
+      - name: client                                  # Set your name for container that will run inside of POD
+        image: stephengrider/multi-client             # Which docker image will be pulled from Docker Hub as POD container image
+        resources:
+          limits:
+            memory: "128Mi"                           # Provide 128Mi of total Worker Node RAM to container
+            cpu: "100m"                               # Provide 500m of total Worker Node CPU to container
+        ports:
+        - containerPort: 3000                         # Expose port to outside world

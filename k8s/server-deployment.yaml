@@ -1,0 +1,41 @@
+apiVersion: apps/v1                                   # API Version
+kind: Deployment                                      # k8s object type that will be deployed by this file
+metadata:
+  name: server-deployment                             # This name will be used as deployment name, and the name of the pod's that will be contorolled by this deployment
+spec:
+  replicas: 3                                         # Number of replicas that deployment should keep up
+  selector:
+    matchLabels:
+      component: server                               # This label should match with the label in of 'template' section. k8s will controll all POD's that has this label
+  template:
+    metadata:
+      labels:                                         # Deployment will controll any POD's that has follwing label. This label should match with the label in the 'selector' section.
+        component: server                             # Format is <selector>:<label> You can set - env:prod, env:dev, db:prod, db:dev, app:frontend, app:backend, component:web, component:db and etc ...
+    spec:                                             # Following configuration if related to container only
+      containers: 
+        - name: server                                  # Set your name for container that will run inside of POD
+          image: cygnetops/multi-server-pgfix-5-11
+          resources:
+            limits:
+              memory: "128Mi"                           # Provide 128Mi of total Worker Node RAM to container
+              cpu: "100m"                               # Provide 500m of total Worker Node CPU to container
+          ports:
+            - containerPort: 5000                         # Expose port to outside world
+          env: 
+            - name: REDIS_HOST                          # Name of the environment variable fo Redis Host
+              value: redis-cluster-ip-service           # Set the Redis Cluster IP Service from the output of 'kubectl get svc' command, as the value of the environment variable.
+            - name: REDIS_PORT                          # Name of the environment variable fo Redis Port
+              value: '6379'                             # Set the Redis Port as the value for the environment variable. NOTE: port must be enclosed in bouble quotes
+            - name: PGHOST                              # Name of the environment variable fo Postgres Host 
+              value: postgres-cluster-ip-service        # Set the Postgres Cluster IP Service from the output of 'kubectl get svc' command, as the value of the environment variable.
+            - name: PGPORT                              # Name of the environment variable fo Postgres Port
+              value: '5432'                             # Set the Postgres Port as the value for the environment variable. NOTE: port must be enclosed in bouble quotes
+            - name: PGUSER                              # Name of the environment variable fo Postgres user
+              value: postgres                           # Set the Postgres user as the value for the environment variable
+            - name: PGDATABASE                          # Name of the environment variable fo Postgres Database name
+              value: postgres                           # Set the Postgres user as the value for the environment variable
+            - name: PGPASSWORD                          # Name of the environment variable fo Postgres Database name
+              valueFrom:                                # Get the value for this environment variable from some configuration
+                secretKeyRef:                           # Here we specify reference for the specific secrets configuration that contains our PGPASSWORD variable value
+                  name: pgpassword                      # The name of the secret that contains our PGPASSWORD variable value
+                  key: PGPASSWORD                       # This it the key:value pair inside of secret that contain required variable value. We set 'PG-USER-PASSWORD=<your_password>' during the secret creation

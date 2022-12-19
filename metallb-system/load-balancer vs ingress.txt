@@ -1,0 +1,79 @@
+Load Balancer is ONLY is going to give you access to ONE SET of PODS
+###########################################################################
+#          				 ------------------------                         # 
+#         				|   Web App Deployment  |                         # 
+#         				|------------------------                         # 
+#  AWS/GCP/Metallb LB   |       Web App POD     |                         # 
+#  -------------------> |------------------------                         # 
+#         				|       Web App POD     |                         # 
+#         				|------------------------                         # 
+#         				|       Web App Pod     |                         # 
+#         				 ------------------------                         # 
+#                                                                         # 
+#          				 ------------------------                         # 
+#         				| Front App Deployment  |                         # 
+#         				|------------------------                         # 
+#  AWS/GCP/Metallb LB   |     Front App POD     |                         # 
+#  -------------------> |------------------------                         # 
+#         				|     Front App POD     |                         # 
+#         				|------------------------                         # 
+#         				|     Front App POD     |                         # 
+#         				 ------------------------                         # 
+#                                                                         # 
+#          				 ------------------------                         # 
+#         				| Client App Deployment |                         # 
+#         				|------------------------                         # 
+#  AWS/GCP/Metallb LB   |     Client App POD    |                         # 
+#  -------------------> |------------------------                         # 
+#         				|     Client App POD    |                         # 
+#         				|------------------------                         # 
+#         				|     Client App POD    |                         # 
+#         				 ------------------------                         # 
+###########################################################################
+
+
+Ingress Controller, instead can can give you access to MULTIPLE SET of PODS
+That is why Ingress is more preferable solution for expose your services to outside world
+
+TL:DR 
+Ingress Controller will deploy POD with NGINX inside of, that will route traffic to specific set of Services(with configured ClusterIP).
+Behind the scenes, this Service will communicate with the set of POD's, which's label matches with the Service label's 
+
+There are three most common Ingress controllers built on NGINX: 
+a) Ingress-nginx        - NGINX Open Source (https://github.com/kubernetes/ingress-nginx), lead by community
+b) kubernetes-ingress   - Kubernetes Community (https://github.com/nginxinc/kubernetes-ingress), lead by NGINX company
+c) NGINX Plus           - Commercial product based on NGINX Plus
+
+NOTE: As recommendation for using in production - ingress-nginx (https://github.com/kubernetes/ingress-nginx)
+
+######################################################################################################################################################
+#                               					                             						 	 -------------------------------------   # 
+#                               					                            							|            |   Web App Deployment  |   #  
+#                               					                            							|            |------------------------   # 
+#                               					                     			 		        		|            |       Web App POD     |   # 
+#                               					                     		    ------------------->  	| Cluster IP |------------------------   # 
+#                               					                               |					    |	Service  |       Web App POD     |   # 
+#                               					                               | 						|            |------------------------   # 
+#                               					                               | 						|            |       Web App Pod     |   # 
+#                               					                               | 						 -------------------------------------   # 
+#                               					                               |                          	                                     # 
+#                               					                               |  					 	 -------------------------------------   # 
+#                               					                               | 						|            | Front App Deployment  |   # 
+#                               	   _____________________________	           | 						|            |------------------------   # 
+#                    _________ 	  	  |		    |    Deployment     |  Ingress     |	   	                |            |      Front App POD    |   # 
+#        Traffic    |         |       |  Load   |-------------------|------------> |-------------------> 	| Cluster IP |------------------------   # 
+#     ------------> | GCP/AWS | ----> | Balancer|nginx-controller/	|			   |              	        |	Service  |      Front App POD    |   #  
+#                   |   LB    |       | Service	|    nginx-pod	    |              | 						|            |------------------------   # 
+#                   |_________|       |_________|___________________|	           | 						|            |      Front App POD    |   #  
+#                               					      ^                        | 						 -------------------------------------   # 
+#                               					      |                        |                                                                 # 
+#                               				 -------------------	           |  					     -------------------------------------   #  
+#                               				|  Ingress Resource	|              | 						|            | Client App Deployment |   #  
+#                               				 -------------------	           | 						|            |------------------------   #  
+#                               				 Set of routing rules	   		   |	   			        |            |     Client App POD    |   #  
+#                               					                     		    -------------------> 	| Cluster IP |------------------------   #  
+#                               					                            							|	Service  |     Client App POD    |   #  
+#                               					                            							|            |------------------------   #  
+#                               					                            							|            |     Client App POD    |   #  
+#                               					                            							 -------------------------------------   #  
+######################################################################################################################################################

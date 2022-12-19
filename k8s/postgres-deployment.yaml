@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: postgres
+  template:
+    metadata:
+      labels:
+        component: postgres
+    spec:
+      volumes:                                # This section set PVC configuration for all POD's that is controlled/deployed by this deployment
+        - name: postgres-storage              # Set name for your Volume that will be created by Kubernetes using PVC specified below 
+          persistentVolumeClaim:              # PVC must be set on POD level, becase this PVC will be acessed by all POD's, whereas 'volumeMounts' should be set on container level
+            claimName: postgres-pvc           # Name of PVC that you created earlier. Name should match the name in PVC config file. K8s will ask this PVC to provide storage for this deployment
+      containers:                             # This section is 
+      - name: myapp
+        image: postgres:14
+        resources:
+          limits:
+            memory: "1024Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 5432
+        volumeMounts:                             # Mount volume created by PVC to the specific container OS path
+          - name: postgres-storage                # Here it means go up to 'volumes' section in this deployment file, and find volume with such name that will be mount to the container OS path
+            mountPath: /var/lib/postgresql/data   # OS path to where PVC will mount volume and will store container data in case of POD failure
+            subPath: postgres                     # Any data inside of container that stored in the 'mountPath' that will be stored inside of a folder called 'postgres', that's located inside of a PVC
+        env:
+          - name: POSTGRES_PASSWORD
+            valueFrom: 
+              secretKeyRef:                       # Here we specify reference for the specific secrets configuration that contains our PGPASSWORD variable value
+                name: pgpassword                  # The name of the secret that contains our PGPASSWORD variable value
+                key: PGPASSWORD                  # This it the key:value pair inside of secret that contain required variable value. We set 'PG-USER-PASSWORD=<your_password>' during the secret creation
+        # envFrom:                                # Get environment variables from Secrets configuration
+        #  - secretRef:
+        #      name: POSTGRES_PASSWORD
+        # envFrom:                                # Get environment variables from ConfigMap configuration
+        #    - configMapRef:
+        #        name: postgres-config

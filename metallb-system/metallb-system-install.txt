@@ -1,0 +1,79 @@
+-------------- This step will deploy Metallb-System on your k8s Baremetal cluster --------------
+1. kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
+
+2. kubectl get nodes -o wide
+NAME               STATUS   ROLES           AGE   VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE                           KERNEL-VERSION                 CONTAINER-RUNTIME
+kmaster.k8s.com    Ready    control-plane   50d   v1.25.3   172.16.16.100   <none>        Rocky Linux 8.6 (Green Obsidian)   4.18.0-372.26.1.el8_6.x86_64   containerd://1.6.9
+kworker1.k8s.com   Ready    <none>          50d   v1.25.3   172.16.16.101   <none>        Rocky Linux 8.6 (Green Obsidian)   4.18.0-372.26.1.el8_6.x86_64   containerd://1.6.9
+kworker2.k8s.com   Ready    <none>          50d   v1.25.3   172.16.16.102   <none>        Rocky Linux 8.6 (Green Obsidian)   4.18.0-372.26.1.el8_6.x86_64   containerd://1.6.9
+kworker3.k8s.com   Ready    <none>          49d   v1.25.3   172.16.16.103   <none>        Rocky Linux 8.6 (Green Obsidian)   4.18.0-372.26.1.el8_6.x86_64   containerd://1.6.9
+
+
+
+3. Configure IP range for Metallb-System. NOTE: Set IP range for Metallb-System from the Worker Nodes INTERNAL-IP's CIDR
+# kubectl apply -f metallb-system-ip-range.yaml and add following parameters:
+---------------------------------------------------------------------------------------------------
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: first-pool
+  namespace: metallb-system
+spec:
+  addresses:
+  - 172.16.16.240-172.16.16.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: example
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+  - first-pool
+
+---------------------------------------------------------------------------------------------------
+
+# Deploy Nginx pod from cli 
+4. kubectl create deploy nginx2 --image nginx
+
+# Expose newly deployed Nginx POD by creating Load Balancer type Service
+5. kubectl expose deploy nginx2 --port 80 --type LoadBalancer
+
+# Or create yaml file and deploy nginx POD and LoadBalancer
+# kubectl apply -f nginx-load-balancer-example.yaml 
+---------------------------------------------------------------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  annotations:
+    metallb.universe.tf/address-pool: first-pool
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+  selector:
+    app: nginx
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  containers:
+  - name: myapp
+    image: nginx
+    resources:
+      limits:
+        memory: "256Mi"
+        cpu: "256m"
+    ports:
+      - containerPort: 80
+
+---------------------------------------------------------------------------------------------------
+
+# Check that newly created nginx LoadBalancer are get External IP from the ip-range specified in metallb-system-ip-range.yaml
+6. kubectl get all -A -o wide

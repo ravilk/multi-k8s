@@ -1,0 +1,27 @@
+kubectl delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/baremetal/deploy.yaml
+
+kubectl delete -f ingress-service.yaml
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/baremetal/deploy.yaml
+
+kubectl apply -f ingress-service.yaml
+
+kubectl describe ing/ingress-service
+
+kubectl -n ingress-nginx describe deployment ingress-nginx
+
+kubectl -n ingress-nginx describe svc/ingress-nginx-controller
+
+kubectl -n ingress-nginx describe svc/ingress-nginx-controller-admission
+
+kubectl -n ingress-nginx describe svc/ingress-nginx-lb
+
+kubectl -n ingress-nginx logs -f deployment/ingress-nginx-controller
+
+kubectl -n ingress-nginx exec -it ingress-nginx-controller-6c56945c75-7sd5s -- cat /etc/nginx/nginx.conf
+
+ssh -L 8080:127.0.0.1:8080 vagrant@kmaster
+
+kubectl port-forward --namespace=ingress-nginx service/ingress-nginx-controller 8080:80 & 
+
+http://localhost:8080/
