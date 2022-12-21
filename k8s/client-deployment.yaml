@@ -5,6 +5,11 @@ metadata:
 spec:
   revisionHistoryLimit: 1                             # The maximum number of old replicasets that we want to keep, after updating deployment/replica set
   replicas: 3                                         # Number of replicas that deployment should keep up
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       component: web                                  # This label should match with the label in of 'template' section. k8s will controll all POD's that has this label

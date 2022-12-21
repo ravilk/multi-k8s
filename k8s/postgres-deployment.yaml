@@ -3,8 +3,12 @@ kind: Deployment
 metadata:
   name: postgres-deployment
 spec:
-  revisionHistoryLimit: 1                 # The maximum number of old replicasets that we want to keep, after updating deployment/replica set
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       component: postgres
