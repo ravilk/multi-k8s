@@ -1,63 +1,75 @@
-name: Deploy MultiK8s
+name: Deploy MultiK8s         # Name of GitHub Actions
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ]      # Git branch name, on which push command will trigger following commands
  
 env:
-  SHA: $(git rev-parse HEAD)
+  SHA: $(git rev-parse HEAD)  # Print current SHA for the latest commit. SHA is unique id for each commit
+
+# Example, run following command inside of your main branch of affected repo:
+# git rev-parse HEAD
+# bcd64cebbd18f47e90083048ab71ddedfdf56c82 
  
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest          # OS where our buidl will be executed
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3   # This action checks-out your repository under $GITHUB_WORKSPACE, so your workflow can access it.
  
-      - name: Test
-        run: |-
-          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Test                  # Step name
+        run: |-                     # You must set DOCKER_USERNAME and DOCKER_PASSWORD in the Repo security settings
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}  
           docker build -t ravilkhalilov/react-test -f ./client/Dockerfile.dev ./client
           docker run -e CI=true ravilkhalilov/react-test npm test
  
-      - name: Set Service Key
+      - name: Set Service Key       # Step name                                
         uses: 'google-github-actions/auth@v0'
         with:
-          credentials_json: '${{ secrets.GKE_SA_KEY }}'
+          credentials_json: '${{ secrets.GKE_SA_KEY }}'    # You must set GKE_SA_KEY in the Repo security settings
  
-      - name: Set Project
+      - name: Set Project           # Step name
         uses: google-github-actions/setup-gcloud@v0
         with:
-          project_id: supple-design-372120
+          project_id: supple-design-372120        # Yuor Google Cloud project
  
-      - name: Auth
-        run: |-
-          gcloud --quiet auth configure-docker
+      - name: Auth                  # Step name
+        run: |-                     # gcloud auth configure-docker - register gcloud as a Docker credential helper, it adds the Docker credHelper entry to Docker's configuration file, or creates the file if it doesn't exis
+          gcloud --quiet auth configure-docker  
  
-      - name: Get Credentials
+      - name: Get Credentials       # Step name
         uses: google-github-actions/get-gke-credentials@v0
         with:
-          cluster_name: multi-cluster
-          location: us-central1-c
+          cluster_name: multi-cluster     # Your GKE cluster name
+          location: us-central1-c         # Set GCP Zone where you deployed GKE cluster
  
-      - name: Build
-        run: |-
+# By default k8s is using images with default tag 'latest'
+# SHA required here to help k8s to use specific images that have been build and pushed in latest git commit
+# i.e.  SHA is unique version identified for new image, 
+# so k8s will see this new image as and will deploy new set of pods using it
+#
+# 'env.SHA' mean's that SHA will accept value from the output of 'git rev-parse HEAD' command in the above step called 'env'
+# 'latest' tag is still using here, so others folks don't need to know your commit SHA, they just can use your images with 'latest' tag, 
+#  without worrying specifying a SHA, and 'latest' is trully latest version of image
+      - name: Build      # Step name
+        run: |-          # Here docker will build 2 identical images with different tags, both tags indicate a latest version of image
           docker build -t ravilkhalilov/multi-client:latest -t ravilkhalilov/multi-client:${{ env.SHA }} -f ./client/Dockerfile ./client
           docker build -t ravilkhalilov/multi-server:latest -t ravilkhalilov/multi-server:${{ env.SHA }} -f ./server/Dockerfile ./server
           docker build -t ravilkhalilov/multi-worker:latest -t ravilkhalilov/multi-worker:${{ env.SHA }} -f ./worker/Dockerfile ./worker
- 
-      - name: Push
-        run: |-
+
+      - name: Push        # Step name
+        run: |-           # Push docker images with both tags
           docker push ravilkhalilov/multi-client:latest
           docker push ravilkhalilov/multi-server:latest
           docker push ravilkhalilov/multi-worker:latest
+
+          docker push ravilkhalilov/multi-client:${{ env.SHA }}
+          docker push ravilkhalilov/multi-server:${{ env.SHA }}
+          docker push ravilkhalilov/multi-worker:${{ env.SHA }}
  
-        #  docker push ravilkhalilov/multi-client:${{ env.SHA }}
-        #  docker push ravilkhalilov/multi-server:${{ env.SHA }}
-        #  docker push ravilkhalilov/multi-worker:${{ env.SHA }}
- 
-      - name: Apply
-        run: |-
+      - name: Apply       # Step name
+        run: |-           # Explicitly specify image with SHA tag for the each container(server,client,worker) in the deployments
           kubectl apply -f k8s
-        # kubectl set image deployments/server-deployment server=ravilkhalilov/multi-server:${{ env.SHA }}
-        # kubectl set image deployments/client-deployment client=ravilkhalilov/multi-client:${{ env.SHA }}
-        # kubectl set image deployments/worker-deployment worker=ravilkhalilov/multi-worker:${{ env.SHA }}
+          kubectl set image deployments/server-deployment server=ravilkhalilov/multi-server:${{ env.SHA }}
+          kubectl set image deployments/client-deployment client=ravilkhalilov/multi-client:${{ env.SHA }}
+          kubectl set image deployments/worker-deployment worker=ravilkhalilov/multi-worker:${{ env.SHA }}
