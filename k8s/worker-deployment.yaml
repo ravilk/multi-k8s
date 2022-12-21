@@ -14,7 +14,7 @@ spec:
     spec:                                             # Following configuration if related to container only
       containers: 
       - name: worker                                  # Set your name for container that will run inside of POD
-        image: stephengrider/multi-worker             # Which docker image will be pulled from Docker Hub as POD container image
+        image: ravilkhalilov/multi-worker             # Which docker image will be pulled from Docker Hub as POD container image
         resources:
           limits:
             memory: "128Mi"                           # Provide 128Mi of total Worker Node RAM to container

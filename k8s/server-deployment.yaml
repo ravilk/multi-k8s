@@ -14,7 +14,7 @@ spec:
     spec:                                             # Following configuration if related to container only
       containers: 
         - name: server                                  # Set your name for container that will run inside of POD
-          image: cygnetops/multi-server-pgfix-5-11
+          image: ravilkhalilov/multi-server
           resources:
             limits:
               memory: "128Mi"                           # Provide 128Mi of total Worker Node RAM to container

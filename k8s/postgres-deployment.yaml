@@ -22,7 +22,7 @@ spec:
           resources:
             limits:
               memory: "1024Mi"
-              cpu: "500m"
+              cpu: "256m"
           ports:
             - containerPort: 5432
           volumeMounts:                             # Mount volume created by PVC to the specific container OS path
