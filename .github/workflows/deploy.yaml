@@ -51,13 +51,13 @@ jobs:
           docker push ravilkhalilov/multi-server:latest
           docker push ravilkhalilov/multi-worker:latest
  
-          docker push ravilkhalilov/multi-client:${{ env.SHA }}
-          docker push ravilkhalilov/multi-server:${{ env.SHA }}
-          docker push ravilkhalilov/multi-worker:${{ env.SHA }}
+        #  docker push ravilkhalilov/multi-client:${{ env.SHA }}
+        #  docker push ravilkhalilov/multi-server:${{ env.SHA }}
+        #  docker push ravilkhalilov/multi-worker:${{ env.SHA }}
  
       - name: Apply
         run: |-
           kubectl apply -f k8s
-          kubectl set image deployments/server-deployment server=ravilkhalilov/multi-server:${{ env.SHA }}
-          kubectl set image deployments/client-deployment client=ravilkhalilov/multi-client:${{ env.SHA }}
-          kubectl set image deployments/worker-deployment worker=ravilkhalilov/multi-worker:${{ env.SHA }}
+        # kubectl set image deployments/server-deployment server=ravilkhalilov/multi-server:${{ env.SHA }}
+        # kubectl set image deployments/client-deployment client=ravilkhalilov/multi-client:${{ env.SHA }}
+        # kubectl set image deployments/worker-deployment worker=ravilkhalilov/multi-worker:${{ env.SHA }}
