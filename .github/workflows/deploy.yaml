@@ -41,23 +41,23 @@ jobs:
  
       - name: Build
         run: |-
-          docker build -t ravilkhalilov/multi-client-k8s-gh:latest -t ravilkhalilov/multi-client-k8s-gh:${{ env.SHA }} -f ./client/Dockerfile ./client
-          docker build -t ravilkhalilov/multi-server-k8s-pgfix-gh:latest -t ravilkhalilov/multi-server-k8s-pgfix-gh:${{ env.SHA }} -f ./server/Dockerfile ./server
-          docker build -t ravilkhalilov/multi-worker-k8s-gh:latest -t ravilkhalilov/multi-worker-k8s-gh:${{ env.SHA }} -f ./worker/Dockerfile ./worker
+          docker build -t ravilkhalilov/multi-client:latest -t ravilkhalilov/multi-client:${{ env.SHA }} -f ./client/Dockerfile ./client
+          docker build -t ravilkhalilov/multi-server:latest -t ravilkhalilov/multi-server:${{ env.SHA }} -f ./server/Dockerfile ./server
+          docker build -t ravilkhalilov/multi-worker:latest -t ravilkhalilov/multi-worker:${{ env.SHA }} -f ./worker/Dockerfile ./worker
  
       - name: Push
         run: |-
-          docker push ravilkhalilov/multi-client-k8s-gh:latest
-          docker push ravilkhalilov/multi-server-k8s-pgfix-gh:latest
-          docker push ravilkhalilov/multi-worker-k8s-gh:latest
+          docker push ravilkhalilov/multi-client:latest
+          docker push ravilkhalilov/multi-server:latest
+          docker push ravilkhalilov/multi-worker:latest
  
-          docker push ravilkhalilov/multi-client-k8s-gh:${{ env.SHA }}
-          docker push ravilkhalilov/multi-server-k8s-pgfix-gh:${{ env.SHA }}
-          docker push ravilkhalilov/multi-worker-k8s-gh:${{ env.SHA }}
+          docker push ravilkhalilov/multi-client:${{ env.SHA }}
+          docker push ravilkhalilov/multi-server:${{ env.SHA }}
+          docker push ravilkhalilov/multi-worker:${{ env.SHA }}
  
       - name: Apply
         run: |-
           kubectl apply -f k8s
-          kubectl set image deployments/server-deployment server=ravilkhalilov/multi-server-k8s-pgfix-gh:${{ env.SHA }}
-          kubectl set image deployments/client-deployment client=ravilkhalilov/multi-client-k8s-gh:${{ env.SHA }}
-          kubectl set image deployments/worker-deployment worker=ravilkhalilov/multi-worker-k8s-gh:${{ env.SHA }}
+          kubectl set image deployments/server-deployment server=ravilkhalilov/multi-server:${{ env.SHA }}
+          kubectl set image deployments/client-deployment client=ravilkhalilov/multi-client:${{ env.SHA }}
+          kubectl set image deployments/worker-deployment worker=ravilkhalilov/multi-worker:${{ env.SHA }}
