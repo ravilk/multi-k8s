@@ -20,9 +20,9 @@ spec:
         - name: myapp
           image: postgres:14
           resources:
-          limits:
-            memory: "1024Mi"
-            cpu: "500m"
+            limits:
+              memory: "1024Mi"
+              cpu: "500m"
           ports:
             - containerPort: 5432
           volumeMounts:                             # Mount volume created by PVC to the specific container OS path
