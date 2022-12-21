@@ -23,6 +23,6 @@ spec:
         resources:
           limits:
             memory: "128Mi"                           # Provide 128Mi of total Worker Node RAM to container
-            cpu: "100m"                               # Provide 500m of total Worker Node CPU to container
+            cpu: "64m"                               # Provide 500m of total Worker Node CPU to container
         ports:
         - containerPort: 3000                         # Expose port to outside world

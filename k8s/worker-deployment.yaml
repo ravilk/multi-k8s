@@ -23,7 +23,7 @@ spec:
         resources:
           limits:
             memory: "128Mi"                           # Provide 128Mi of total Worker Node RAM to container
-            cpu: "100m"                               # Provide 500m of total Worker Node CPU to container
+            cpu: "64m"                               # Provide 500m of total Worker Node CPU to container
         env:                                          # Set environment variables for this container, that can be used to connect to Redis POD
           - name: REDIS_HOST                          # Name of the environment variable fo Redis Host
             value: redis-cluster-ip-service           # Set the Redis Cluster IP Service from the output of 'kubectl get svc' command, as the value of the environment variable.
