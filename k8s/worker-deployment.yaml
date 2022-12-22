@@ -3,7 +3,7 @@ kind: Deployment                                      # k8s object type that wil
 metadata:
   name: worker-deployment                             # This name will be used as deployment name, and the name of the pod's that will be contorolled by this deployment
 spec:
-  replicas: 3                                         # Number of replicas that deployment should keep up
+  replicas: 1                                         # Number of replicas that deployment should keep up
   strategy:
     type: RollingUpdate
     rollingUpdate:
