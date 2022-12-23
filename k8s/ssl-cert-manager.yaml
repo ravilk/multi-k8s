@@ -1,10 +1,10 @@
 apiVersion: cert-manager.io/v1
- 
+
 kind: Certificate
 metadata:
-  name: rkdba-com-tls
+  name: rkdba-com
 spec:
-  secretName: rkdba-com-tls
+  secretName: rkdba-com
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
@@ -12,3 +12,10 @@ spec:
   dnsNames:
     - rkdba.com
     - www.rkdba.com
+  acme:
+    config:
+      - http01:
+          ingressClass: nginx
+        domains:
+          - rkdba.com
+          - www.rkdba.com
