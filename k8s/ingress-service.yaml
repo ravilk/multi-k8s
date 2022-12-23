@@ -5,7 +5,7 @@ metadata:
   name: ingress-service                                     # Our object name
   annotations:                                              # A higher level of configuraton over Ingress Service
     kubernetes.io/ingress.class: 'nginx'                    # Here we say to k8s that we want to create ingress controller based on NGINX project
-    nginx.ingress.kubernetes.io/rewrite-target: /         # Rewrite target URL path afte path is matched with the requested path in URL
+    nginx.ingress.kubernetes.io/rewrite-target: /$1         # Rewrite target URL path afte path is matched with the requested path in URL
     cert-manager.io/cluster-issuer: 'letsencrypt-prod'
     nginx.ingress.kubernetes.io/ssl-redirect: 'true'
 spec:
