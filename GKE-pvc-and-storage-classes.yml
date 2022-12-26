@@ -1,0 +1,91 @@
+############################################ List of GKE storage classes ############################################
+❯ k get sc
+NAME                     PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+premium-rwo              pd.csi.storage.gke.io   Delete          WaitForFirstConsumer   true                   5d1h
+standard                 kubernetes.io/gce-pd    Delete          Immediate              true                   5d1h
+standard-rwo (default)   pd.csi.storage.gke.io   Delete          WaitForFirstConsumer   true                   5d1h
+######################################################################################################################
+# Here GKE PVC will use standard-rwo as  deault storage class for above PVC
+######################################################################################################################
+❯ k describe pvc/postgres-pvc
+Name:          postgres-pvc
+Namespace:     default
+StorageClass:  standard-rwo
+Status:        Bound
+Volume:        pvc-9c69329a-cccd-4cd9-ac9e-289542be1d80
+Labels:        <none>
+Annotations:   pv.kubernetes.io/bind-completed: yes
+               pv.kubernetes.io/bound-by-controller: yes
+               volume.beta.kubernetes.io/storage-provisioner: pd.csi.storage.gke.io
+               volume.kubernetes.io/selected-node: gke-multi-cluster-default-pool-8fefcc5f-vtn1
+               volume.kubernetes.io/storage-provisioner: pd.csi.storage.gke.io
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      10Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Used By:       postgres-deployment-7bcbd668bf-gmfq4
+Events:        <none>
+
+######################################################################################################################
+❯ k describe sc/premium-rwo
+Name:                  premium-rwo
+IsDefaultClass:        No
+Annotations:           components.gke.io/component-name=pdcsi,components.gke.io/component-version=0.13.6,components.gke.io/layer=addon
+Provisioner:           pd.csi.storage.gke.io
+Parameters:            type=pd-ssd
+AllowVolumeExpansion:  True
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     WaitForFirstConsumer
+Events:                <none>
+
+######################################################################################################################
+❯ k describe sc/standard
+Name:                  standard
+IsDefaultClass:        No
+Annotations:           components.gke.io/layer=addon,storageclass.kubernetes.io/is-default-class=false
+Provisioner:           kubernetes.io/gce-pd
+Parameters:            type=pd-standard
+AllowVolumeExpansion:  True
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     Immediate
+Events:                <none>
+
+######################################################################################################################
+❯ k describe sc/standard-rwo
+Name:                  standard-rwo
+IsDefaultClass:        Yes
+Annotations:           components.gke.io/layer=addon,storageclass.kubernetes.io/is-default-class=true
+Provisioner:           pd.csi.storage.gke.io
+Parameters:            type=pd-balanced
+AllowVolumeExpansion:  True
+MountOptions:          <none>
+ReclaimPolicy:         Delete
+VolumeBindingMode:     WaitForFirstConsumer
+Events:                <none>
+
+################################################ PVC ##########################################################
+# GKE will use 'standard-rwo' storage class and dynamically increase PVC every time when you change storage size in PVC file
+###############################################################################################################
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc               # Specify name for PVC. This name should match with the pvc name specified in the Postgres deployment config file
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-rwm              # Specify name for PVC. This name should match with the pvc name specified in the Postgres deployment config file
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
